@@ -1,3 +1,11 @@
 
 **MatLab References**
 https://www.mathworks.com/
+
+**Arduino References** 
+
+Load Cell Code
+-----> https://www.instructables.com/Arduino-Scale-With-5kg-Load-Cell-and-HX711-Amplifi/?amp_page=true
+
+Laser Sensor Code
+-----> https://github.com/pololu/vl53l1x-arduino
