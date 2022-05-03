@@ -1,0 +1,48 @@
+ % creates a button for retrieving and analyzing data from user
+ % Button pushed function: GetDataButton
+        function GetDataButtonPushed(app, event)
+            filename = input('Enter Your file name:','s'); % asks user for file name
+            Onedrive = input('Do you use OneDrive:[Y/N] ','s'); % asks user if the use OneDrive
+            Thickness = input('Enter the thickness of the Material[m]: ','s'); % asks user for thickness of their material
+           Width = input('Enter the Width of the Material[m]: ','s'); // asks user for width of their material
+            path = ['C:\Users\',getenv('USERNAME'),'\OneDrive','\Desktop\']; % sets up a data path to retreive the file the user specified
+            altpath = ['C:\Users\',getenv('USERNAME'),'\Desktop\']; % alternate data path
+            
+            % chooses a path based on user Onedrive response
+           if(isequal(Onedrive,'Y'))
+               Filepath = strcat(path,filename);
+           end
+           if(isequal(Onedrive,'N'))
+               Filepath = strcat(altpath,filename);
+           end
+               
+            
+            T = readtable(Filepath,'Range','A1:B400');% reads file
+            y = T.Var1; %holds first column of data in file
+            x = T.Var2; % holds secon column of data in file
+            var = (9.8/(str2num(Width)*str2num(Thickness))); // value used to calulate stress
+            y = y*var; // calulates stress
+          
+           
+            plot(app.UIAxes,x,y,'-o'); plots Stress vs. Strain data
+            
+
+           
+          
+              fig = app.UIFigure; %creates a figure
+              s = ' ';
+              Table = table(y,x);%creates a table for Stress and Strain values.
+             value = uitable(fig,'Data',Table,'Position', [300 100 300 100],'ColumnName',{'Stress[N/m^2]','Strain[m/m]'}); %Adds a table to the Applcation's UI
+             label = ['Ultimate Tensile Strength is: ',s ,num2str(max(y)),s,'[N/m^2]']; %creates a label for UTS
+             UTS = uilabel(fig,'Text',label,'Position',[30 0 300 50]); % adds a label to Application's UI
+           
+   %Creates a button that is used for creating a new instance of the application while deleting the old instance.
+ % Button pushed function: ResetButton
+        function ResetButtonPushed(app, event)
+      
+            % Make current instance of app invisible
+    app.UIFigure.Visible = 'off';
+    % Open 2nd instance of app
+    tutorialApp();  % <--------------The name of your app
+    % Delete old instance
+    close(app.UIFigure) %Thanks to Guillaume for suggesting to use close() rather than delete()

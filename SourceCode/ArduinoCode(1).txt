@@ -1,0 +1,118 @@
+#include <ComponentObject.h>
+#include <RangeSensor.h>
+#include <SparkFun_VL53L1X.h>
+#include <vl53l1x_class.h>
+//libraries
+#include <vl53l1_error_codes.h>
+#include "HX711.h"
+#include <Wire.h>
+#include "SparkFun_VL53L1X.h" //Click here to get the library: http://librarymanager/All#SparkFun_VL53L1X
+
+//Optional interrupt and shutdown pins.
+#define SHUTDOWN_PIN 12
+#define INTERRUPT_PIN 11
+#define calibration_factor -440 //This value is obtained using the SparkFun_HX711_Calibration sketch
+#define LOADCELL_DOUT_PIN 7 
+#define LOADCELL_SCK_PIN  8
+
+SFEVL53L1X distanceSensor;
+HX711 scale;
+
+float counter2[3]; // used to hold distance values
+int j; // used to increment the number of values we use for average;
+float Stress; // holds stress value
+//Sets up Load censor and laser distance sensor
+void setup()
+{
+  delay(50);
+  Wire.begin();
+
+  Serial.begin(9600);
+  
+  Serial.println("HX711 scale demo");
+
+  scale.begin(LOADCELL_DOUT_PIN, LOADCELL_SCK_PIN);
+  scale.set_scale(calibration_factor); //This value is obtained by using the SparkFun_HX711_Calibration sketch
+  scale.tare(); //Assuming there is no weight on the scale at start up, reset the scale to 0
+  Serial.println("VL53L1X Qwiic Test");
+  
+  if (distanceSensor.begin() != 0) //Begin returns 0 on a good init
+  {
+    Serial.println("Sensor failed to begin. Please check wiring. Freezing...");
+    while (1)
+      ;
+  }
+  Serial.println("Sensor online!");
+  distanceSensor.setDistanceModeShort();
+}
+//starts ArduinoSpreadsheet
+void loop(void)
+{
+   delay(20);
+  toExcel();
+
+}
+
+
+// produces load value
+
+void Load(){
+ 
+//Serial.print("Reading: ");
+float units = scale.get_units();
+
+if(units < 0){
+  units = 0;
+}
+units = units*.001;
+ Stress =  units;//abs(((units)*9.8)/(.0000762*.02));
+
+  //Serial.print(" idk units"); //You can change this to kg but you'll need to refactor the calibration_factor
+ 
+
+}
+
+// produces distance value
+void distance(){
+ {
+  distanceSensor.startRanging(); //Write configuration bytes to initiate measurement
+  while (!distanceSensor.checkForDataReady())
+  {
+    delay(1);
+  }
+  int distance = distanceSensor.getDistance(); //Get the result of the measurement from the sensor
+  distanceSensor.clearInterrupt();
+  distanceSensor.stopRanging();
+
+
+   counter2[j] = ((distance * .001)-.12); // adds an offset to base distance for strain
+   
+ }
+}
+// sets up Arduspreadsheet "csv file"
+
+void toExcel(){
+       
+ 
+   Load();
+  
+ float sum = 0;
+ for(int i = 0;i < 5;i++){
+      distance();
+     j++;
+     sum = counter2[i] + sum; 
+ }
+ j = 0;
+ sum = sum /5; 
+ 
+ 
+  sum = abs(((sum-.03)/.03)); 
+ Serial.print(Stress, 3);
+ Serial.print(",");
+ Serial.print(sum, 3);
+ Serial.print(",");
+
+
+ 
+ Serial.println();
+}
